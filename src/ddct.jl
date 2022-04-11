@@ -1,6 +1,13 @@
 #create an abstract supertype for our analysis results
 abstract type DeltaResult end
 
+#function for selecting specific targets and samples frome a DeltaCT.data or DDCT.data DataFrame
+function selectdata(data,selectedtargets,selectedsamples)::DataFrame
+    targetrows=[r in selectedtargets for r in data.target]
+    samplerows=[r in selectedsamples for r in data.sample]
+    return data[targetrows .&& samplerows,:] |> copy #wrap in a copy() so I can sleep at night
+end
+
 """
 Type representing the results of a qPCR experiment. These objects should be created by a parser
 function such as `readpcr`
@@ -15,10 +22,10 @@ struct QPCRDataset <: DeltaResult
     end
     
     #another inner constructor for indexing
-    function DeltaCT(dct::DeltaCT,selectedtargets::Vector{String},selectedsamples::Vector{String})
+    function QPCRDataset(pcr::QPCRDataset,selectedtargets::Vector{String},selectedsamples::Vector{String})
         st=Set(selectedtargets)
         ss=Set(selectedsamples)
-        newdata=selectdata(dct.data,st,ss)
+        newdata=selectdata(pcr.data,st,ss)
         new(newdata)
     end
     
@@ -131,13 +138,6 @@ end
 
 function Base.getindex(dr::T,targetregex::Regex,samplecolon::Colon)::T where {T<:DeltaResult}
     dr[targetregex]
-end
-
-#function for selecting specific targets and samples frome a DeltaCT.data or DDCT.data DataFrame
-function selectdata(data,selectedtargets,selectedsamples)::DataFrame
-    targetrows=[r in selectedtargets for r in data.target]
-    samplerows=[r in selectedsamples for r in data.sample]
-    return data[targetrows .&& samplerows,:] |> copy #wrap in a copy() so I can sleep at night
 end
 
 """
