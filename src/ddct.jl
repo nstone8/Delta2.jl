@@ -13,6 +13,15 @@ struct QPCRDataset <: DeltaResult
         @assert ((eltype(data.ct) <: Real) && (eltype(data.sample) <: AbstractString) && (eltype(data.target) <: AbstractString)) "Column datatypes not correct. Users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
         new(data)
     end
+    
+    #another inner constructor for indexing
+    function DeltaCT(dct::DeltaCT,selectedtargets::Vector{String},selectedsamples::Vector{String})
+        st=Set(selectedtargets)
+        ss=Set(selectedsamples)
+        newdata=selectdata(dct.data,st,ss)
+        new(newdata)
+    end
+    
 end
 
 #create an empty readpcr function that other packages implementing parsers can add methods to
