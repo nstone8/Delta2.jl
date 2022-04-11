@@ -39,6 +39,11 @@ function Base.show(io::IO,x::DeltaResult)
     show(io,x.data[:,[1,2,3,end]])
 end
 
+#need a more specific option for QPCRDataset
+function Base.show(io::IO,x::QPCRDataset)
+    show(io,x.data)
+end
+
 #add some methods to allow dr[targets] and dr[targets,samples] indexing for DeltaResult objects
 function Base.getindex(dr::T,selectedtargets::Vector{String},selectedsamples::Vector{String})::T where {T<:DeltaResult}
     T(dr,selectedtargets,selectedsamples)
