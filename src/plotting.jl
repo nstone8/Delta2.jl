@@ -22,7 +22,7 @@
     layout --> (length(sampvec),1)
     size --> (100*length(targetvec[1])+200,200*length(sampvec))
     left_margin --> 10mm
-    top_margin --> 10mm
+    bottom_margin --> 10mm
     (hcat(targetvec...),hcat(dctfoldvec...))
 end
 
@@ -56,6 +56,6 @@ end
     layout --> (length(targetvec),1)
     size --> (100*length(samplevec[1])+200,200*length(targetvec))
     left_margin --> 10mm
-    top_margin --> 10mm
+    bottom_margin --> 10mm
     (hcat(samplevec...),hcat(ddctfoldvec...))
 end
