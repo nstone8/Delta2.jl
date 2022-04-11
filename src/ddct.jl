@@ -3,12 +3,55 @@ struct QPCRDataset
     #add an inner constructor to check that the column labels are right
     function QPCRDataset(data::AbstractDataFrame)::QPCRDataset
         @assert names(data)==["sample","target","ct"] "Incorrect column names, users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
-        @assert eltype(data.ct) <: Real "CT values not numeric. Users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
+        @assert ((eltype(data.ct) <: Real) && (eltype(data.sample) <: AbstractString) && (eltype(data.target) <: AbstractString)) "Column datatypes not correct. Users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
         new(data)
     end
 end
 
-struct DeltaCT
+#create an abstract supertype for our analysis results
+abstract type DeltaResult end
+
+targets(dr::DeltaResult) = Set(dr.data.target)
+samples(dr::DeltaResult) = Set(dr.data.sample)
+
+#add some methods to allow dr[targets] and dr[targets,samples] indexing for DeltaResult objects
+function Base.getindex(dr::T,selectedtargets::Vector{String},selectedsamples::Vector{String})::T where {T<:DeltaResult}
+    T(dr,selectedtargets,selectedsamples)
+end
+
+#if only targets are specified
+function Base.getindex(dr::T,selectedtargets::Vector{String})::T where {T<:DeltaResult}
+    dr[selectedtargets,collect(samples(dr))]
+end
+
+#if only one target and no samples are specified
+function Base.getindex(dr::T,onetarget::AbstractString)::T where {T<:DeltaResult}
+    dr[[onetarget]]
+end
+
+#if only one target and multiple samples are specified
+function Base.getindex(dr::T,onetarget::AbstractString,selectedsamples::Vector{String})::T where {T<:DeltaResult}
+    dr[[onetarget],selectedsamples]
+end
+
+#if multiple targets and one sample are specified
+function Base.getindex(dr::T,selectedtargets::Vector{String},onesample::AbstractString)::T where {T<:DeltaResult}
+    dr[selectedtargets,[onesample]]
+end
+
+#if one target and one sample are specified
+function Base.getindex(dr::T,onetarget::AbstractString,onesample::AbstractString)::T where {T<:DeltaResult}
+    dr[[onetarget],[onesample]]
+end
+
+#function for selecting specific targets and samples frome a DeltaCT.data or DDCT.data DataFrame
+function selectdata(data,selectedtargets,selectedsamples)::DataFrame
+    targetrows=[r in selectedtargets for r in data.target]
+    samplerows=[r in selectedsamples for r in data.sample]
+    return data[targetrows .&& samplerows,:] |> copy #wrap in a copy() so I can sleep at night
+end
+
+struct DeltaCT <: DeltaResult
     data::AbstractDataFrame
     hkgenes::Vector{String}
     function DeltaCT(data::QPCRDataset,hkgenes::Vector{String};ntc="NTC",ampthreshold=40)::DeltaCT
@@ -54,12 +97,22 @@ struct DeltaCT
         dct_frame.dct_fold=2 .^ (-1 .* dct_frame.dct)
         return new(dct_frame,hkgenes)
     end
+
+    #one more inner constructor to allow for indexing of DeltaCT objects
+    function DeltaCT(dct::DeltaCT,selectedtargets::Vector{String},selectedsamples::Vector{String})
+        st=Set(selectedtargets)
+        ss=Set(selectedsamples)
+        #our hkgenes always get to come along for the ride
+        st=union(st,Set(dct.hkgenes))
+        newdata=selectdata(dct.data,st,ss)
+        new(newdata,dct.hkgenes)
+    end
 end
 
-struct DDCT
+struct DDCT <: DeltaResult
     data::AbstractDataFrame
     dct::DeltaCT
-    refsample
+    refsample::AbstractString
     function DDCT(dct::DeltaCT,refsample)
         dct_frame=dct.data
         #get the dct values for our reference sample for each target
@@ -75,4 +128,25 @@ struct DDCT
         ddct_frame.ddct_fold = 2 .^ (-1 .* ddct_frame.ddct)
         return new(ddct_frame,dct,refsample)
     end
+
+    #one more inner constructor to allow for indexing of DDCT objects
+    function DDCT(ddct::DDCT,selectedtargets::Vector{String},selectedsamples::Vector{String})
+        st=Set(selectedtargets)
+        ss=Set(selectedsamples)
+        #our hkgenes always get to come along for the ride
+        st=union(st,Set(ddct.dct.hkgenes))
+        #our refsample also are always included
+        ss=union(ss,Set([ddct.refsample]))
+
+        @show ss
+        @show st
+        
+        #also do the selection on our dct object
+        new_dct=DeltaCT(ddct.dct,st |> collect,ss |> collect)
+
+        #now select our dataframe
+        newdata=selectdata(ddct.data,st |> collect,ss |> collect)
+        new(newdata,new_dct,ddct.refsample)
+    end
+    
 end

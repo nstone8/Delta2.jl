@@ -15,7 +15,13 @@ function parsethermo(csvfilename::AbstractString)::QPCRDataset
     seek(tempbuf,0)
     rawdata=CSV.read(tempbuf,DataFrame)
     close(tempbuf)
-    data=select(rawdata,"Sample Name"=>:sample,"Target Name"=>:target,"CT"=>ByRow(function(ct)
+    data=select(rawdata,"Sample Name" => function(s)
+                    #make sure sample names are always Strings
+                    string.(s)
+                end => :sample,"Target Name"=>function(t)
+                    #make sure targets are also strings
+                    string.(t)
+                    end => :target,"CT"=>ByRow(function(ct)
                                                                                       if ct=="Undetermined"
                                                                                           return Float64(40)
                                                                                       else
