@@ -1,8 +1,11 @@
+#create an abstract supertype for our analysis results
+abstract type DeltaResult end
+
 """
 Type representing the results of a qPCR experiment. These objects should be created by a parser
 function such as `readpcr`
 """
-struct QPCRDataset
+struct QPCRDataset <: DeltaResult
     data::AbstractDataFrame
     #add an inner constructor to check that the column labels are right
     function QPCRDataset(data::AbstractDataFrame)::QPCRDataset
@@ -14,9 +17,6 @@ end
 
 #create an empty readpcr function that other packages implementing parsers can add methods to
 function readpcr end
-
-#create an abstract supertype for our analysis results
-abstract type DeltaResult end
 
 """
 ```julia
