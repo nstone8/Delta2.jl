@@ -1,3 +1,7 @@
+"""
+Type representing the results of a qPCR experiment. These objects should be created by a parser
+function such as `readpcr`
+"""
 struct QPCRDataset
     data::AbstractDataFrame
     #add an inner constructor to check that the column labels are right
@@ -8,10 +12,26 @@ struct QPCRDataset
     end
 end
 
+#create an empty readpcr function that other packages implementing parsers can add methods to
+function readpcr end
+
 #create an abstract supertype for our analysis results
 abstract type DeltaResult end
 
+"""
+```julia
+targets(result)
+```
+Get the targets present in a `DeltaResult`
+"""
 targets(dr::DeltaResult) = Set(dr.data.target)
+
+"""
+```julia
+samples(result)
+```
+Get the samples present in a `DeltaResult`
+"""
 samples(dr::DeltaResult) = Set(dr.data.sample)
 
 #make DeltaResults print well in the REPL
@@ -106,6 +126,21 @@ function selectdata(data,selectedtargets,selectedsamples)::DataFrame
     return data[targetrows .&& samplerows,:] |> copy #wrap in a copy() so I can sleep at night
 end
 
+"""
+```julia
+DeltaCT(data, hk; ntc="NTC", ampthreshold=40)
+```
+
+Perform ΔCT analysis on a `QPCRDataset` by normalizing the results for each sample 
+against the geometric mean of the targets listed in `hk` (which should be a `Vector{String}`).
+
+This function will throw and error if any CT values for the sample passed as `ntc` are greater
+than `ampthreshold`.
+
+# Indexing
+The resulting object can be indexed using the form `result[targets]` or `result[targets,samples]`
+where `targets` and `samples` can be a `String`, a `Vector{String}`, a `Regex` or `:`.
+"""
 struct DeltaCT <: DeltaResult
     data::AbstractDataFrame
     hkgenes::Vector{String}
@@ -164,6 +199,18 @@ struct DeltaCT <: DeltaResult
     end
 end
 
+"""
+```julia
+DDCT(dct, refsample)
+```
+
+Perform  ΔΔCT (comparitive CT) analysis on a `DeltaCT` object by renormalizing the ΔCT results
+against the sample `refsample`
+
+# Indexing
+The resulting object can be indexed using the form `result[targets]` or `result[targets,samples]`
+where `targets` and `samples` can be a `String`, a `Vector{String}`, a `Regex` or `:`.
+"""
 struct DDCT <: DeltaResult
     data::AbstractDataFrame
     dct::DeltaCT
@@ -204,4 +251,23 @@ struct DDCT <: DeltaResult
         new(newdata,new_dct,ddct.refsample)
     end
     
+end
+
+"""
+```julia
+writeresult(path,result)
+result |> writeresult(path)
+```
+Write an analysis result to `path` as a CSV.
+"""
+function writeresult end
+
+function writeresult(filename::AbstractString,result::DeltaResult)
+    result.data |> CSV.write(filename)
+end
+
+function writeresult(filename::AbstractString)
+    function(result::DeltaResult)
+        writeresult(filename,result)
+    end
 end
