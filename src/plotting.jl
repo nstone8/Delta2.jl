@@ -15,10 +15,13 @@
     end
 
     seriestype := :bar
-    label := reshape(sampvec,1,:)
+    title := reshape(sampvec,1,:)
     xlabel := "Target"
-    ylabel := "Relative Gene Expression"
+    ylabel := "DCT Fold"
+    legend --> false
     layout --> (length(sampvec),1)
+    size --> (100*length(targetvec[1])+200,200*length(sampvec))
+    left_margin --> 10mm
     (hcat(targetvec...),hcat(dctfoldvec...))
 end
 
@@ -45,9 +48,12 @@ end
     end
 
     seriestype := :bar
-    label := reshape(targetvec,1,:)
+    title := reshape(targetvec,1,:)
     xlabel := "Sample"
-    ylabel := "Relative Gene Expression"
+    ylabel := "DDCT Fold"
+    legend --> false
     layout --> (length(targetvec),1)
+    size --> (100*length(samplevec[1])+200,200*length(targetvec))
+    left_margin --> 10mm
     (hcat(samplevec...),hcat(ddctfoldvec...))
 end

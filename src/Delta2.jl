@@ -1,6 +1,7 @@
 module Delta2
 using DataFrames
 using RecipesBase
+using Measures
 import REPL
 using REPL.TerminalMenus
 import StatsBase.geomean

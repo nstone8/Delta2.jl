@@ -14,11 +14,17 @@ function DeltaCT()
 
 end
 
-function DeltaCT(filename::AbstractString)
+function DeltaCT(qpcr::QPCRDataset)
+
+    #DeltaCT(data::QPCRDataset,hkgenes::Vector{String};ntc="NTC",ampthreshold=40)::DeltaCT
     
 end
 
+function DDCT()
 
-DeltaCT(data::QPCRDataset,hkgenes::Vector{String};ntc="NTC",ampthreshold=40)::DeltaCT
+end
 
-DDCT(dct::DeltaCT,refsample)
+function DDCT(qpcr::QPCRDataset)
+
+    #DDCT(dct::DeltaCT,refsample)
+end

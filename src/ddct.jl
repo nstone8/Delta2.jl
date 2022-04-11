@@ -14,6 +14,11 @@ abstract type DeltaResult end
 targets(dr::DeltaResult) = Set(dr.data.target)
 samples(dr::DeltaResult) = Set(dr.data.sample)
 
+#make DeltaResults print well in the REPL
+function Base.show(io::IO,x::DeltaResult)
+    show(io,x.data[:,[1,2,3,end]])
+end
+
 #add some methods to allow dr[targets] and dr[targets,samples] indexing for DeltaResult objects
 function Base.getindex(dr::T,selectedtargets::Vector{String},selectedsamples::Vector{String})::T where {T<:DeltaResult}
     T(dr,selectedtargets,selectedsamples)
