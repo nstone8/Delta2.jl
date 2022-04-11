@@ -44,6 +44,56 @@ function Base.getindex(dr::T,onetarget::AbstractString,onesample::AbstractString
     dr[[onetarget],[onesample]]
 end
 
+#if we want to pass a Regex for the targets
+function Base.getindex(dr::T,targetregex::Regex,s)::T where {T<:DeltaResult}
+    selectedtargets=filter(targets(dr)) do t
+        !isnothing(match(targetregex,t))
+    end |> collect
+    dr[selectedtargets,s]
+end
+
+#if we want to pass a Regex for the samples
+function Base.getindex(dr::T,t,sampleregex::Regex)::T where {T<:DeltaResult}
+    selectedsamples=filter(samples(dr)) do s
+        !isnothing(match(sampleregex,s))
+    end |> collect
+    dr[t,selectedsamples]
+end
+
+#if we want to only pass a target regex
+function Base.getindex(dr::T,targetregex::Regex)::T where {T<:DeltaResult}
+    dr[targetregex,samples(dr) |> collect]
+end
+
+#if we want a regex for both
+function Base.getindex(dr::T,targetregex::Regex,sampleregex::Regex)::T where {T<:DeltaResult}
+    selectedtargets=filter(targets(dr)) do t
+        !isnothing(match(targetregex,t))
+    end |> collect
+
+    selectedsamples=filter(samples(dr)) do s
+        !isnothing(match(sampleregex,s))
+    end |> collect
+    dr[selectedtargets,selectedsamples]
+end
+
+#support for Colon indexing dr[target,:] or dr[:,sample]
+function Base.getindex(dr::T,t,samplecolon::Colon)::T where {T<:DeltaResult}
+    dr[t]
+end
+
+function Base.getindex(dr::T,targetcolon::Colon,s)::T where {T<:DeltaResult}
+    dr[targets(dr) |> collect,s]
+end
+
+function Base.getindex(dr::T,targetcolon::Colon,sampleregex::Regex)::T where {T<:DeltaResult}
+    dr[targets(dr) |> collect,sampleregex]
+end
+
+function Base.getindex(dr::T,targetregex::Regex,samplecolon::Colon)::T where {T<:DeltaResult}
+    dr[targetregex]
+end
+
 #function for selecting specific targets and samples frome a DeltaCT.data or DDCT.data DataFrame
 function selectdata(data,selectedtargets,selectedsamples)::DataFrame
     targetrows=[r in selectedtargets for r in data.target]
