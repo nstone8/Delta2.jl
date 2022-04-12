@@ -1,5 +1,6 @@
 module Delta2
 using DataFrames
+using CSV
 using RecipesBase
 using Measures
 import REPL
