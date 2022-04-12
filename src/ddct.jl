@@ -219,7 +219,7 @@ struct DeltaCT <: DeltaResult
             @assert size(ntc_data)[1] > 0 "No data found for no template controls. If there are not any no template controls please pass `ntc=missing`"
             amplified_ntc=ntc_data[ntc_data.ct .< ampthreshold,:]
             if size(amplified_ntc)[1] > 0 #there was amplification in a no template control
-                error("Amplification detected in no template controls for the following targets: " * join(amplified_ntc.target," ,"))
+                error("Amplification detected in no template controls for the following targets: " * join(Set(amplified_ntc.target)," ,"))
             end
         end
 
