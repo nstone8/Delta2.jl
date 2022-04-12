@@ -60,6 +60,51 @@ function Base.show(io::IO,x::QPCRDataset)
     show(io,x.data)
 end
 
+#support indexing
+function Base.getindex(dr::T,targetselector,sampleselector)::T where {T<:DeltaResult}
+    st=doselection(targets(dr),targetselector)
+    ss=doselection(samples(dr),sampleselector)
+    T(dr,st,ss)
+end
+
+#allow people to only specify targets
+function Base.getindex(dr::T,targetselector)::T where {T<:DeltaResult}
+    st=doselection(targets(dr),targetselector)
+    ss=samples(dr) |> collect
+    T(dr,st,ss)
+end
+
+#do selection for Set{String}
+function doselection(options::Set{String},selector::Set{String})::Vector{String}
+    intersect(options,selector) |> collect
+end
+
+#do selection for Vector{String}
+function doselection(options::Set{String},selector::Vector{String})::Vector{String}
+    doselection(options,Set(selector))
+end
+
+#selection for Strings
+function doselection(options::Set{String},selector::String)::Vector{String}
+    doselection(options,Set([selector]))
+end
+
+#do selection for Regex
+function doselection(options::Set{String},selector::Regex)::Vector{String}
+    selectedset=filter(options) do o
+        !isnothing(match(selector,o))
+    end |> Set
+    doselection(options,selectedset)
+end
+
+#selection for Colon
+function doselection(options::Set{String},::Colon)::Vector{String}
+    collect(options)
+end
+
+#=======================================================================================================================
+REMOVE ME
+
 #add some methods to allow dr[targets] and dr[targets,samples] indexing for DeltaResult objects
 function Base.getindex(dr::T,selectedtargets::Vector{String},selectedsamples::Vector{String})::T where {T<:DeltaResult}
     T(dr,selectedtargets,selectedsamples)
@@ -139,6 +184,8 @@ end
 function Base.getindex(dr::T,targetregex::Regex,samplecolon::Colon)::T where {T<:DeltaResult}
     dr[targetregex]
 end
+=====================================================================================================#
+
 
 """
 ```julia
