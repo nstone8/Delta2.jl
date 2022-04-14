@@ -33,7 +33,7 @@ end
 
 """
 ```julia
-QPCRDataset(data; sample_col, target_col, ct_col; [noamp_flag], [dropmissing])
+QPCRDataset(data, sample_col, target_col, ct_col; [noamp_flag], [dropmissing])
 ```
 Create a QPCRDataset from a .csv file. If the data contains a flag for samples that didn't amplify 
 (for instance, an entry of "Undetermined" in the ct column) this flag can be passed to the
