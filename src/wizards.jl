@@ -21,7 +21,7 @@ function saveprompt(result)::String
     savefile=nothing
     while true
         savefile=strip(escapechars,readline())
-        if savefile[end-3:end]!=".csv"
+        if (length(savefile)<4) || (savefile[end-3:end]!=".csv")
             savefile*=".csv"
         end
         if isfile(joinpath(savedir,savefile))
