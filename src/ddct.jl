@@ -16,8 +16,8 @@ struct QPCRDataset <: DeltaResult
     data::AbstractDataFrame
     #add an inner constructor to check that the column labels are right
     function QPCRDataset(data::AbstractDataFrame)::QPCRDataset
-        @assert names(data)==["sample","target","ct"] "Incorrect column names, users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
-        @assert ((eltype(data.ct) <: Real) && (eltype(data.sample) <: AbstractString) && (eltype(data.target) <: AbstractString)) "Column datatypes not correct. Users should not call this constructor directly. Please use a parser function in the Delta2.Parsers submodule"
+        @assert names(data)==["sample","target","ct"] "Incorrect column names, users should not call this constructor directly."
+        @assert ((eltype(data.ct) <: Real) && (eltype(data.sample) <: AbstractString) && (eltype(data.target) <: AbstractString)) "Column datatypes not correct. Users should not call this constructor directly."
         new(data)
     end
     
@@ -31,8 +31,42 @@ struct QPCRDataset <: DeltaResult
     
 end
 
+"""
+```julia
+QPCRDataset(data; sample_col, target_col, ct_col; [noamp_flag], [dropmissing])
+```
+Create a QPCRDataset from a .csv file. If the data contains a flag for samples that didn't amplify 
+(for instance, an entry of "Undetermined" in the ct column) this flag can be passed to the
+`noamp_flag` keyword argument. If the argument dropmissing=true is provided, all
+rows with empty values will be dropped after selecting columns.
+"""
+function QPCRDataset(data::DataFrame, sample_col, target_col, ct_col; noamp_flag=nothing, dropmissing=false)::QPCRDataset
+    selected_data=select(data,sample_col => function(s)
+                             #make sure sample names are always Strings
+                             string.(s)
+                         end => :sample,target_col=>function(t)
+                             #make sure targets are also strings
+                             string.(t)
+                         end => :target,ct_col=>ByRow(function(ct)
+                                                          if !isnothing(noamp_flag)
+                                                              if ct==noamp_flag
+                                                                  return Float64(40)
+                                                              end
+                                                          end
+                                                          if !isa(ct,Real)
+                                                              return parse(Float64,ct)
+                                                          end
+                                                          return ct
+                                                      end)=>:ct)
+    if dropmissing
+        DataFrames.dropmissing!(selected_data)
+    end
+    return QPCRDataset(selected_data)
+end
+
 #create an empty readpcr function that other packages implementing parsers can add methods to
 function readpcr end
+
 
 """
 ```julia

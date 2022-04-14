@@ -89,3 +89,56 @@ function DDCT(qpcr::QPCRDataset)
     ddct |> saveprompt
     return ddct
 end
+
+function askforpath()
+    prompt="""
+    please enter the path to your qpcr data
+    this must be a .csv file containing columns that identify samples, targets and CT values
+    tip: try dragging the file onto this window
+    """
+    println(prompt)
+    response=strip(Delta2.escapechars,readline())
+    println()
+    return response
+end
+
+function qpcrdatasetwizard()
+    println()
+    rawframe=CSV.read(askforpath(),DataFrame)
+    allcols=names(rawframe)
+    
+    println("select column in dataset which contains sample names")
+    samp_col_index=RadioMenu(allcols) |> request
+    println()
+
+    println("select column in dataset which contains target names")
+    target_col_index=RadioMenu(allcols) |> request
+    println()
+
+    println("select column in dataset which contains ct values")
+    ct_col_index=RadioMenu(allcols) |> request
+    println()
+    return QPCRDataset(rawframe,allcols[samp_col_index],allcols[target_col_index],allcols[ct_col_index],dropmissing=true)
+end
+    
+#wizard for performing DeltaCT
+"""
+```julia
+DeltaCT()
+```
+Start a wizard for performing ΔCT on qPCR data contained in a generic .csv file
+"""
+function DeltaCT()
+    qpcrdatasetwizard() |> DeltaCT
+end
+
+#wizard for performing DDCT
+"""
+```julia
+DDCT()
+```
+Start a wizard for performing ΔΔCT on data contained in a generic .csv file
+"""
+function Delta2.DDCT()
+    qpcrdatasetwizard() |> DDCT
+end
