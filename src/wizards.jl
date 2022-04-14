@@ -22,6 +22,7 @@ function saveprompt(result)::String
     savefile=nothing
     while true
         savefile=strip(escapechars,readline())
+        savefile = (savefile=="" ? "qpcr_results.csv" : savefile)
         if (length(savefile)<4) || (savefile[end-3:end]!=".csv")
             savefile*=".csv"
         end
