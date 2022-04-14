@@ -16,6 +16,7 @@ function saveprompt(result)::String
               """
     println(dirprompt)
     savedir=strip(escapechars,readline())
+    println()
     nameprompt="Enter a filename or press enter to name the file qpcr_results.csv"
     println(nameprompt)
     savefile=nothing
