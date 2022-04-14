@@ -250,9 +250,6 @@ struct DDCT <: DeltaResult
         #our refsample also are always included
         ss=union(ss,Set([ddct.refsample]))
 
-        @show ss
-        @show st
-        
         #also do the selection on our dct object
         new_dct=DeltaCT(ddct.dct,st |> collect,ss |> collect)
 
