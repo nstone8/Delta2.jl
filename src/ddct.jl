@@ -41,6 +41,10 @@ Create a QPCRDataset from a .csv file. If the data contains a flag for samples t
 rows with empty values will be dropped after selecting columns.
 """
 function QPCRDataset(data::DataFrame, sample_col, target_col, ct_col; noamp_flag=nothing, dropmissing=false)::QPCRDataset
+    if dropmissing
+        select!(data,sample_col,target_col,ct_col)
+        DataFrames.dropmissing!(data)
+    end
     selected_data=select(data,sample_col => function(s)
                              #make sure sample names are always Strings
                              string.(s)
@@ -58,9 +62,7 @@ function QPCRDataset(data::DataFrame, sample_col, target_col, ct_col; noamp_flag
                                                           end
                                                           return ct
                                                       end)=>:ct)
-    if dropmissing
-        DataFrames.dropmissing!(selected_data)
-    end
+    
     return QPCRDataset(selected_data)
 end
 
