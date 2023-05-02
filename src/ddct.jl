@@ -47,10 +47,10 @@ function QPCRDataset(data::DataFrame, sample_col, target_col, ct_col; noamp_flag
     end
     selected_data=select(data,sample_col => function(s)
                              #make sure sample names are always Strings
-                             string.(s)
+                             String.(s)
                          end => :sample,target_col=>function(t)
                              #make sure targets are also strings
-                             string.(t)
+                             String.(t)
                          end => :target,ct_col=>ByRow(function(ct)
                                                           if !isnothing(noamp_flag)
                                                               if ct==noamp_flag
@@ -62,7 +62,6 @@ function QPCRDataset(data::DataFrame, sample_col, target_col, ct_col; noamp_flag
                                                           end
                                                           return ct
                                                       end)=>:ct)
-    
     return QPCRDataset(selected_data)
 end
 
