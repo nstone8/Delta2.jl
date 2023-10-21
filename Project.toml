@@ -1,6 +1,6 @@
 name = "Delta2"
 uuid = "a5253c47-3b47-401b-8203-180358aa4e2a"
-authors = ["Nicholas Stone <stone.nicholas@gmail.com>"]
+authors = ["Nicholas Stone <nicholasestone@proton.me>"]
 version = "0.1.0"
 
 [deps]
